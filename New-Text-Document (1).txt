@@ -1,0 +1,172 @@
+
+CREATE TRIGGER trigger_name { BEFORE | AFTER } { INSERT | UPDATE | DELETE } ON table_name
+	FOR EACH ROW
+BEGIN
+    // Statement
+    // new.col_name 
+    // old.col_name
+END
+
+DROP TRIGGER IF EXISTS delAudit;
+
+DELIMITER //
+CREATE TRIGGER delAudit AFTER DELETE ON customer
+	FOR EACH ROW
+BEGIN
+    DELETE FROM audit
+        WHERE CUSTOMER_ID = old.CUSTOMER_ID;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS sumUsed;
+
+DELIMITER //
+CREATE TRIGGER sumUsed AFTER INSERT ON audit
+	FOR EACH ROW
+BEGIN
+    DECLARE dUsed DECIMAL(18,2) DEFAULT 0;
+ 
+   
+    SELECT SUM(USED) INTO dUsed FROM audit WHERE CUSTOMER_ID = new.CUSTOMER_ID;
+ 
+   
+    UPDATE customer SET USED = dUsed WHERE CUSTOMER_ID = new.CUSTOMER_ID; 
+END //
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS sumUsed_Delete;
+
+DELIMITER //
+CREATE TRIGGER sumUsed_Delete AFTER DELETE ON audit
+	FOR EACH ROW
+BEGIN
+    DECLARE dUsed DECIMAL(18,2) DEFAULT 0;
+ 
+   
+    SELECT SUM(USED) INTO dUsed FROM audit WHERE CUSTOMER_ID = old.CUSTOMER_ID;
+    
+   
+ UPDATE customer SET USED = dUsed WHERE CUSTOMER_ID = old.CUSTOMER_ID; 
+END //
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS getCustomer;
+
+DELIMITER //
+CREATE PROCEDURE getCustomer()
+BEGIN
+
+	DECLARE x,y INT DEFAULT 0;
+
+  SELECT COUNT(*) INTO x FROM customer;
+	
+	SELECT COUNT(*) INTO y FROM customer WHERE COUNTRY_CODE = 'US';
+
+        
+	SELECT concat('x =  ', x),concat('y =  ', y);
+
+END //
+
+DELIMITER ;
+
+
+
+CREATE TABLE IF NOT EXISTS `customer` (
+  `CUSTOMER_ID` varchar(4) NOT NULL,
+
+  `NAME` varchar(50) NOT NULL,
+  `EMAIL` varchar(50) NOT NULL,
+
+  `COUNTRY_CODE` varchar(2) NOT NULL,
+  `BUDGET` decimal(18,2) NOT NULL,
+
+  `USED` decimal(18,2) NOT NULL,
+  PRIMARY KEY (`CUSTOMER_ID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+--
+-- Dumping data for table `customer`
+--
+
+INSERT INTO `customer` (`CUSTOMER_ID`, `NAME`, `EMAIL`, `COUNTRY_CODE`, `BUDGET`, `USED`)
+ VALUES
+('C001', 'Win Weerachai', 'win.weerachai@thaicreate.com', 'TH', 1000000.00, 600000.00),
+
+('C002', 'John  Smith', 'john.smith@thaicreate.com', 'UK', 2000000.00, 800000.00),
+
+('C003', 'Jame Born', 'jame.born@thaicreate.com', 'US', 3000000.00, 600000.00),
+
+('C004', 'Chalee Angel', 'chalee.angel@thaicreate.com', 'US', 4000000.00, 100000.00);
+
+
+
+CREATE TABLE IF NOT EXISTS `country` (
+  `COUNTRY_CODE` varchar(2) NOT NULL,
+ 
+ `COUNTRY_NAME` varchar(50) NOT NULL,
+  PRIMARY KEY (`COUNTRY_CODE`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+--
+-- Dumping data for table `country`
+--
+
+INSERT INTO `country` (`COUNTRY_CODE`, `COUNTRY_NAME`) VALUES
+('TH', 'Thailand  '),
+
+('UK', 'United Kingdom'),
+('US', 'United States');
+
+
+
+CREATE TABLE IF NOT EXISTS `audit` 
+(
+  `AUDIT_ID` int(4) NOT NULL,
+
+  `CUSTOMER_ID` varchar(4) NOT NULL,
+
+  `LOG_DATE` date NOT NULL,
+
+  `USED` decimal(18,2) NOT NULL,
+
+  PRIMARY KEY (`AUDIT_ID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+--
+-- Dumping data for table `audit`
+--
+
+INSERT INTO `audit` 
+(`AUDIT_ID`, `CUSTOMER_ID`, `LOG_DATE`, `USED`) VALUES
+(1, 'C001', '2015-08-01', 100000.00),
+
+(2, 'C001', '2015-08-05', 200000.00),
+(3, 'C001', '2015-08-10', 300000.00),
+
+(4, 'C002', '2015-08-02', 400000.00),
+(5, 'C002', '2015-08-07', 100000.00),
+
+(6, 'C002', '2015-08-15', 300000.00),
+(7, 'C003', '2015-08-20', 400000.00),
+
+(8, 'C003', '2015-08-25', 200000.00),
+(9, 'C004', '2015-07-04', 100000.00);
+
+
+CREATE PROCEDURE getCustomer()
+BEGIN
+   SELECT * FROM customer;
+END
+
+
+CREATE DEFINER = 'root'@'localhost' PROCEDURE getCustomer()
+BEGIN
+   SELECT * FROM customer;
+END
+
+

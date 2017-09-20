@@ -1,0 +1,81 @@
+use testexam
+SELECT * from emp;
+SELECT * from dept;
+
+1
+SELECT emp.empno,ename,sal,emp.deptno,dname FROM emp INNER JOIN dept 
+on emp.deptno=dept.deptno where job='Manager' AND sal>=2500 
+ORDER BY sal DESC;
+
+2
+select emp.empno,ename,sal,dname,dept.deptno FROM emp INNER JOIN dept
+on emp.deptno=dept.deptno WHERE dept.deptno=10 or dept.deptno=30;
+
+3
+select emp.empno,ename,sal,dept.deptno,dname FROM emp INNER JOIN dept
+on emp.deptno=dept.deptno 
+ORDER BY sal LIMIT 0,1
+
+4
+SELECT emp.empno,ename,sal,dname FROM emp INNER JOIN dept 
+on emp.deptno=dept.deptno WHERE job='salesman' AND comm>=0
+
+5
+SELECT empno,ename,sal,job from emp where 
+(job='clerk' or job='Analyst') AND
+(sal<>1000 and sal<>2000 AND sal<>3000) 
+
+6
+SELECT job,(select avg(sal) as E from emp HAVING E>2000) as total
+from emp GROUP BY job;
+
+7
+select *, (select avg(sal) as E from emp) as sum
+from emp HAVING sal>sum; 
+
+8
+select e1.ename,e1.sal,e1.deptno,dname
+from emp as E1 INNER JOIN dept ON E1.deptno=dept.deptno,(select deptno from emp ORDER BY sal desc LIMIT 0,1) as E2
+where e1.deptno=e2.deptno
+
+
+9
+UPDATE emp set sal=sal*0.1 where deptno=20;
+
+10
+insert into dept(deptno,dname) values(50,'com')
+
+11
+delete from emp WHERE dname='sales'
+
+
+select * from invoice
+select * from customer
+select * from product
+select * from vendor
+SELECT* from line
+12
+select * FROM invoice INNER JOIN customer on invoice.cus_code=customer.cus_code
+WHERE invoice.inv_number=1003
+
+13
+SELECT * from product where p_price in(20,30)
+
+14
+select invoice.inv_number,cus_code,inv_date,sum(line_price) as total from invoice INNER JOIN line 
+on invoice.inv_number=line.inv_number GROUP BY invoice.inv_number,inv_number,cus_code,inv_date
+
+15
+select line.inv_number,line_number,line_units,line_price,
+p_descript,sum(line_units) as total
+FROM line INNER JOIN product 
+ON line.p_code=product.p_code
+GROUP BY line.p_code
+order by total desc limit 0,1
+
+16
+select line.inv_number,line_number,line_price,P_descript,sum(line_price) as total
+from line INNER JOIN product 
+on line.p_code=product.p_code
+GROUP BY line.p_code
+ORDER BY total desc limit 0,1

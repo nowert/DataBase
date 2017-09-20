@@ -1,0 +1,126 @@
+use lab;
+
+select sal from emp where job = 'manager'
+
+select distinct(sal) from emp where  job<>'manager';
+
+select * from emp where job='manager' 
+and sal < some(select distinct(sal) from emp where  job<>'manager');
+
+select empno,ename,dname from  (
+select empno,ename,dname,emp.deptno from emp inner join dept on emp.deptno=dept.deptno) as T1
+
+select empno,ename,sal,เงินเดือนเฉลี่ยของบริษัท from emp 
+
+
+select empno,ename,sal,(select avg(sal) from emp) as "เงินเดือนเฉลี่ยของบริษัท" from emp 
+
+select *,(select avg(sal) from emp where deptno=deptno)as avgg from emp 
+where sal>(select avg(sal) from emp where deptno=deptno)-- ผิด
+
+select *,(select avg(sal) from emp as e2 where e2.deptno=e1.deptno)as avg from emp as e1 
+where sal>(select avg(sal) from emp as e2 where e2.deptno=e1.deptno)
+-- ให้แสดง รหัสแผนก ชื่อแผนก จำนวนคนที่อยุ่ในแผนกนั้น (select count(empno)from emp group by deptno)as "จำนวนพนักงาน" 
+
+select dept.deptno,dname,count(empno) 
+from dept left outer join emp on dept.deptno = emp.deptno group by dept.deptno,dname
+having count(empno)=0
+
+select deptno,dname,loc from dept
+where deptno not in(select distinct deptno from emp)
+
+select dept.deptno,dname,loc 
+from dept left outer join emp on dept.deptno = emp.DEPTNO
+where empno is null
+
+select e1.empno,e1.ename as "ชื่อพนักงาน",e2.ename as "ชื่อหัวหน้า" 
+from emp as e1,emp as e2
+where e1.mgr=e2.empno
+or (e1.mgr is null and e1.ename=e2.ename)
+
+select e1.empno,e1.ename as "ชื่อพนักงาน",e2.ename as "ชื่อหัวหน้า" 
+from emp as e1  left JOIN emp as e2 on e1.mgr=e2.empno
+
+select * from product
+where p_qoh - p_min < 10
+
+select P_code,p_descript,p_price,ifnull(p_discount,0) as "ส่วนลด",(p_price-p_price*ifnull(p_discount,0))as totalPrice from product
+order by totalPrice desc
+
+select*from product 
+where p_indate between '2009-01-01' and '2009-12-31'
+
+select*from product 
+where p_indate like '2009%'
+
+select * from product where year(p_indate)='2009'
+
+select*from 
+(select * from product order by p_price asc limit 0,3) as p1
+order by p_price desc
+
+select*from product order by p_price asc limit 0,3
+
+select*from product
+
+select invoice.inv_number,customer.cus_code,CONCAT(cus_Fname,' ',cus_Lname),
+SUM(line_units*line_price) as totalPrice
+from 
+invoice INNER JOIN line on invoice.inv_number=line.inv_number 
+	INNER JOIN product on product.P_code=line.P_code 
+		inner join customer on customer.cus_code=invoice.cus_code
+				group by invoice.inv_number,customer.cus_code,CONCAT(cus_Fname,' ',cus_Lname)
+					Order by TotalPrice desc limit 0,1
+
+
+select P_code,(p_price-p_price*ifnull(p_discount,0))as totalPrice from product
+order by totalPrice desc
+			
+
+select product.P_code,P_descript,SUM(line_units) from 
+		line INNER JOIN product on product.P_code=line.P_code
+				group by product.P_code
+					order by line_units desc limit 0,1
+
+product.P_code,P_descript,P_indate,P_qoh,P_min,P_price,p_discount,v_code
+
+--1
+select empno,ename,sal,emp.deptno,dname from emp inner join dept on emp.deptno=dept.deptno
+ where job='manager'and sal > 2500 order by sal desc
+
+--2
+select empno,ename,sal,dname from emp inner join dept on emp.deptno=dept.deptno
+ where emp.deptno=10 or emp.deptno=30
+
+--3
+select empno,ename,sal,emp.deptno,dname from emp inner join dept on emp.deptno=dept.deptno
+ where sal = (select min(sal)from emp)
+
+--4
+select empno,ename,sal,dname from emp inner join dept on emp.deptno=dept.deptno
+ where job='salesman' and Comm > 0
+ 
+--5
+select empno,ename,sal from emp
+	where job ='clerk' or job='analyst' and sal<>1000 and sal<>2000 and sal<>3000
+
+--6
+select job, avg(sal) from emp 
+		group by job 
+			having avg(sal)>2000
+
+--7
+select ename,(select avg(sal) from emp )as avgsal from emp 
+	where sal > (select avg(sal) from emp )
+		
+
+--8
+select ename,sal,emp.deptno,dname from emp inner join dept on emp.deptno=dept.deptno
+ where emp.deptno = (select emp.deptno  from emp where sal = (select max(sal)from emp))
+
+--9
+
+
+
+
+select * from emp

@@ -1,0 +1,81 @@
+CREATE TABLE `blog` (
+	`id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+	`title` text,
+	`content` text,
+	`deleted` tinyint(1) unsigned NOT NULL DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `ix_deleted` (`deleted`)) 
+ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='Blog posts';
+
+
+CREATE TABLE `audit` (
+	`id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+	`blog_id` mediumint(8) unsigned NOT NULL,
+	`changetype` enum('NEW','EDIT','DELETE') NOT NULL,
+	`changetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`),
+	KEY `ix_blog_id` (`blog_id`),
+	KEY `ix_changetype` (`changetype`),
+	KEY `ix_changetime` (`changetime`),
+	CONSTRAINT `FK_audit_blog_id` FOREIGN KEY (`blog_id`) REFERENCES `blog` (`id`) ON DELETE CASCADE ON UPDATE CASCADE)
+ ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+DELIMITER $$
+CREATE
+	TRIGGER `blog_after_insert` AFTER INSERT 
+	ON `blog` 
+	FOR EACH ROW BEGIN
+	
+		IF NEW.deleted THEN
+			SET @changetype = 'DELETE';
+		ELSE
+			SET @changetype = 'NEW';
+		END IF;
+    
+		INSERT INTO audit (blog_id, changetype) VALUES (NEW.id, @changetype);
+    END$$
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE
+	TRIGGER `blog_after_update` AFTER UPDATE 
+	ON `blog` 
+	FOR EACH ROW BEGIN
+	
+		IF NEW.deleted THEN
+			SET @changetype = 'DELETE';
+		ELSE
+			SET @changetype = 'EDIT';
+		END IF;
+    
+		INSERT INTO audit (blog_id, changetype) VALUES (NEW.id, @changetype);
+		
+    END$$
+
+DELIMITER ;
+
+INSERT INTO blog (title, content) VALUES ('Article One', 'Initial text.');
+
+UPDATE blog SET content = 'Edited text' WHERE id = 1;
+
+UPDATE blog SET deleted = 1 WHERE id = 1;
+
+
+
+//
+begin
+if old.fullname <> new.fullname then
+    INSERT INTO tbl_log(action_name,key_id,column_name,old_value,new_value,log_time)
+    VALUES('UPDATE',old.id,'fullname',old.fullname,new.fullname,NOW());
+end if;
+if old.email <> new.email then
+    INSERT INTO tbl_log(action_name,key_id,column_name,old_value,new_value,log_time)
+    VALUES('UPDATE',old.id,'email',old.email,new.email,NOW()); 
+end if;
+if old.phone <> new.phone then
+    INSERT INTO tbl_log(action_name,key_id,column_name,old_value,new_value,log_time)
+    VALUES('UPDATE',old.id,'phone',old.phone,new.phone,NOW());
+end if;
+end
